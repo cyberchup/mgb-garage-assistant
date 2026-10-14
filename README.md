@@ -23,10 +23,16 @@ Requires [uv](https://docs.astral.sh/uv/).
 uv sync
 uv run python -m mgb_assistant.evals            # profile on and off (the ablation)
 uv run python -m mgb_assistant.evals --case T1  # one case
+uv run python -m mgb_assistant.evals --assistant profile-only
+uv run python -m mgb_assistant.resolver "How do I balance the carbs?"
 uv run pytest
 ```
 
-Each run writes a record to `runs/` (gitignored, since model answers can paraphrase the manual) with the model, the profile setting, the eval file's version and hash, the git commit and the date. Only the `null` baseline assistant exists so far: it abstains on everything and sets the floor.
+Each run writes a record to `runs/` (gitignored, since model answers can paraphrase the manual) with the model, the profile setting, the eval file's version and hash, the git commit and the date.
+
+There are two baseline assistants so far. `null` abstains on everything and sets the floor. `profile-only` says only what the profile resolver knows (overrides, unknowns, safety flags) with no retrieval, so its ablation gap is the profile's contribution on its own.
+
+The resolver command shows which systems a question touches, which profile entries override the manual, and what the answer has to say. Systems and the words that point at them live in `profile/systems.yaml`.
 
 ## Bring your own manual
 

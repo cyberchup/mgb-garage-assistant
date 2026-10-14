@@ -142,6 +142,14 @@ def test_log_only_accepts_log_citations_or_no_record():
     assert check("log_only", answer("Set on 2026-10-20 [1].", LOG)).status == "pass"
     assert check("log_only", answer("No record of that.", abstained=True)).status == "pass"
     assert check("log_only", answer("The manual says [1].", MANUAL)).status == "fail"
+    assert check("log_only", answer("Set on 2026-10-20 [1] [2].", LOG, MANUAL)).status == "fail"
+
+
+def test_log_only_lets_notes_from_the_profile_ride_along():
+    profile_note = Citation(tier=1, source="profile", entry_id="ignition-type")
+    no_record = answer("No record. Ignition type unknown [1].", profile_note, abstained=True)
+    assert check("log_only", no_record).status == "pass"
+    assert check("log_only", answer("Ignition type unknown [1].", profile_note)).status == "fail"
 
 
 def test_must_mention_matches_whole_words_in_any_case():

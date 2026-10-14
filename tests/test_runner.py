@@ -5,9 +5,11 @@ import pytest
 
 from mgb_assistant.answer import Answer, Citation
 from mgb_assistant.evals.__main__ import main
+from mgb_assistant.evals.baselines import ProfileOnlyAssistant
 from mgb_assistant.evals.cases import load_eval_set
 from mgb_assistant.evals.runner import run_evals, write_run
 from mgb_assistant.profile import load_profile
+from mgb_assistant.resolver import load_resolver
 
 REPO = Path(__file__).resolve().parents[1]
 
@@ -132,6 +134,19 @@ def test_run_record_holds_what_reproducing_the_run_needs(eval_set, tmp_path):
     assert set(record["passes"][0]["metrics"]) == {"override_accuracy", "uncited_numbers_per_100"}
     t1 = record["passes"][0]["results"][0]
     assert t1["answer"]["citations"][0]["tier"] == 2
+
+
+def test_profile_only_baseline_opens_an_ablation_gap_on_the_repo_evals():
+    eval_set = load_eval_set(REPO / "evals" / "v1.yaml")
+    assistant = ProfileOnlyAssistant(load_resolver(eval_set.car_profile))
+    result = run_evals(eval_set, load_profile(eval_set.car_profile), assistant, "profile-only")
+    on, off = result.passes
+    assert statuses(on)["T1"] == "needs_review"  # machine checks pass; the Weber idle advice is for review
+    assert statuses(off)["T1"] == "fail"
+    assert on.metrics()["override_accuracy"] == 1.0
+    assert off.metrics()["override_accuracy"] == 0.0
+    assert on.metrics()["uncited_numbers_per_100"] == 0.0
+    assert result.ablation_gap() > 0
 
 
 def test_cli_runs_the_repo_eval_set(tmp_path, capsys):

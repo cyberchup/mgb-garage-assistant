@@ -1,0 +1,86 @@
+# Systems of the car, and the words that point at them.
+#
+# Deviations, unknowns, source passages and questions all use these ids, so a
+# typo in the profile fails at load time instead of silently matching nothing.
+# A child system (fuel.carburetor) sits under its parent (fuel).
+#
+# Terms match whole words, ignoring case and a trailing "s" ("carbs" matches
+# "carb"). The longest term wins over the words inside it: "carb damper" points
+# at the carburetor, "damper" alone at the suspension. A term listed under two
+# systems points at both.
+#
+# safety_critical marks jobs that get a safety flag and a second-source prompt
+# (CLAUDE.md rule 6). It applies to everything under that system too.
+
+systems:
+  engine:
+    terms: [engine, block, compression, firing order, crankshaft, piston, timing chain]
+  engine.head:
+    terms: [cylinder head, head, head nut, head stud, head gasket]
+  engine.valves:
+    terms: [valve, valve clearance, valve spring, tappet, rocker, rocker cover, rocker shaft, pushrod]
+  engine.lubrication:
+    terms: [oil, engine oil, oil change, oil filter, oil pressure, sump, dipstick]
+  engine.manifolds:
+    terms: [manifold, inlet manifold, intake manifold, exhaust manifold]
+
+  ignition:
+    terms: [ignition, spark, spark plug, plug, plug gap, coil, distributor, distributor cap, rotor arm, condenser, HT lead]
+  ignition.points:
+    terms: [points, points gap, contact breaker, dwell]
+  ignition.timing:
+    terms: [timing, ignition timing, advance, timing light, timing mark, strobe]
+
+  fuel:
+    terms: [fuel, petrol, gas, gasoline]
+  fuel.tank:
+    terms: [fuel tank, tank, old fuel, stale fuel]
+  fuel.pump:
+    terms: [fuel pump, SU pump]
+  fuel.lines:
+    safety_critical: true
+    terms: [fuel line, fuel hose, fuel pipe, fuel filter, fuel leak]
+  fuel.carburetor:
+    terms: [carb, carburetor, carburettor, SU, HS4, Weber, DGV, DGEV, DGAV, jet, jetting, needle,
+            carb damper, damper oil, dashpot, float, float level, float bowl, float chamber,
+            carb adapter, manifold adapter]
+  fuel.choke:
+    terms: [choke, choke cable, cold start]
+  fuel.air_filter:
+    terms: [air filter, air cleaner]
+
+  tuning.mixture:
+    terms: [mixture, rich, lean]
+  tuning.idle:
+    terms: [idle, idle speed, idle screw, tickover]
+
+  cooling:
+    terms: [coolant, radiator, thermostat, water pump, antifreeze, overheating, fan belt]
+
+  electrical:
+    terms: [electrical, wiring, fuse, Lucas, earth]
+  electrical.battery:
+    terms: [battery, batteries]
+  electrical.charging:
+    terms: [charging, dynamo, alternator, voltage regulator]
+  electrical.starting:
+    terms: [starter, starter motor, solenoid, cranking]
+  electrical.lights:
+    terms: [light, headlight, head lamp, indicator, tail light]
+
+  brakes:
+    safety_critical: true
+    terms: [brake, braking, brake fluid, brake pedal, master cylinder, wheel cylinder, caliper,
+            brake pad, brake shoe, brake line, brake hose, servo]
+  clutch:
+    terms: [clutch, clutch fluid, clutch master cylinder, slave cylinder]
+  gearbox:
+    terms: [gearbox, transmission, overdrive, gearbox oil, gear oil]
+  rear_axle:
+    terms: [rear axle, axle, differential, diff]
+  suspension:
+    terms: [suspension, damper, lever arm damper, shock, shock absorber, spring, kingpin, trunnion]
+  steering:
+    terms: [steering, steering rack, rack, tie rod, steering wheel]
+  wheels:
+    terms: [wheel, wire wheel, spoke, tire, tyre, tire pressure, tyre pressure]

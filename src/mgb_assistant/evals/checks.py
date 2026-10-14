@@ -163,12 +163,15 @@ def not_tier4_alone(answer: Answer, case: Case, profile: Profile, param: object)
 
 
 def log_only(answer: Answer, case: Case, profile: Profile, param: object) -> CheckResult:
-    if not answer.citations:
-        if answer.abstained:
-            return CheckResult("log_only", "pass", "no record")
-        return CheckResult("log_only", "fail", "no log citation and no 'no record' answer")
-    others = [f"[{i}] {c.source}" for i, c in enumerate(answer.citations, 1) if c.source != "log"]
-    return _result("log_only", [f"cites non-log sources: {', '.join(others)}"] if others else [])
+    """Answered from the log, or "no record". Notes from the car's record may ride along; the manual may not."""
+    outside = [f"[{i}] {c.source}" for i, c in enumerate(answer.citations, 1) if c.tier != 1]
+    if outside:
+        return CheckResult("log_only", "fail", f"cites sources outside the car's record: {', '.join(outside)}")
+    if any(c.source == "log" for c in answer.citations):
+        return CheckResult("log_only", "pass")
+    if answer.abstained:
+        return CheckResult("log_only", "pass", "no record")
+    return CheckResult("log_only", "fail", "no log entry cited and no 'no record' answer")
 
 
 def cites_tier(answer: Answer, case: Case, profile: Profile, param: object) -> CheckResult:

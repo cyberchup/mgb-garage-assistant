@@ -7,6 +7,8 @@ from pathlib import Path
 
 import yaml
 
+from mgb_assistant.taxonomy import covers
+
 CONFIDENCE_LEVELS = ("confirmed", "believed", "unknown")
 
 
@@ -19,12 +21,28 @@ class Deviation:
     confidence: str
     affects: tuple[str, ...]
     demotes_tiers: tuple[int, ...]
+    factory_spec: str | None = None
+    as_found: str | None = None
+    verify_by: str | None = None
+    notes: str | None = None
+
+
+@dataclass(frozen=True)
+class Unknown:
+    """A fact answers depend on that nobody has checked yet. It overrides nothing (rule 4)."""
+
+    id: str
+    what: str
+    affects: tuple[str, ...]
+    check_by: str | None = None
 
 
 @dataclass(frozen=True)
 class Profile:
     vehicle_id: str
     deviations: tuple[Deviation, ...]
+    unknowns: tuple[Unknown, ...] = ()
+    systems_file: Path | None = None  # the taxonomy this profile's system ids come from
 
     def overriding(self, tier: int, system: str) -> Deviation | None:
         """The deviation that demotes `tier` for `system`, if any.
@@ -38,10 +56,10 @@ class Profile:
                 return deviation
         return None
 
-
-def covers(scope: str, system: str) -> bool:
-    """True if `system` is `scope` or sits under it: fuel.carburetor covers fuel.carburetor.float."""
-    return system == scope or system.startswith(scope + ".")
+    def system_ids(self) -> set[str]:
+        """Every system id the profile refers to."""
+        ids = {s for d in self.deviations for s in (d.system, *d.affects)}
+        return ids | {s for u in self.unknowns for s in u.affects}
 
 
 def load_profile(path: Path) -> Profile:
@@ -61,6 +79,21 @@ def load_profile(path: Path) -> Profile:
                 confidence=confidence,
                 affects=tuple(raw.get("affects") or ()),
                 demotes_tiers=tuple(raw.get("demotes_tiers") or ()),
+                factory_spec=raw.get("factory_spec"),
+                as_found=raw.get("as_found"),
+                verify_by=raw.get("verify_by"),
+                notes=raw.get("notes"),
             )
         )
-    return Profile(vehicle_id=data["vehicle"]["id"], deviations=tuple(deviations))
+    unknowns = []
+    for raw in data.get("unknowns") or []:
+        if not isinstance(raw, dict) or not raw.get("id") or not raw.get("what") or not raw.get("affects"):
+            raise ValueError(f"{path}: each unknown needs an id, what, and the systems it affects; got {raw!r}")
+        unknowns.append(Unknown(raw["id"], raw["what"], tuple(raw["affects"]), raw.get("check_by")))
+    systems = data.get("systems")
+    return Profile(
+        vehicle_id=data["vehicle"]["id"],
+        deviations=tuple(deviations),
+        unknowns=tuple(unknowns),
+        systems_file=path.parent / systems if systems else None,
+    )

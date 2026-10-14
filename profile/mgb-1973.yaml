@@ -2,6 +2,8 @@
 # Tier 1 source. Deviations here outrank the workshop manual for the systems they affect.
 # Every null is something to confirm.
 
+systems: systems.yaml        # the system ids used below, and the words that point at them
+
 vehicle:
   id: mgb-1973
   year: 1973
@@ -32,7 +34,18 @@ deviations:
     demotes_tiers: [3]
     notes: choke type (manual, electric or water) depends on the variant
 
+# Facts answers depend on that nobody has checked yet. They override nothing:
+# a question touching one of these systems is told what's unknown and how to check.
 unknowns:
-  - engine number
-  - Weber variant and jetting
-  - ignition type (points or electronic)
+  - id: engine-number
+    what: engine number
+    affects: [engine, ignition.timing]   # several specs depend on it
+    check_by: read the plate on the block
+  - id: weber-variant
+    what: Weber variant and jetting
+    affects: [fuel.carburetor, fuel.choke, tuning.mixture, tuning.idle]
+    check_by: read the stamping on the carb body
+  - id: ignition-type
+    what: ignition type (points or electronic)
+    affects: [ignition]
+    check_by: lift the distributor cap and look for points or an electronic module

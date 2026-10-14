@@ -33,6 +33,17 @@ def test_loads_the_repo_profile():
     profile = load_profile(REPO / "profile" / "mgb-1973.yaml")
     assert profile.vehicle_id == "mgb-1973"
     assert profile.overriding(3, "fuel.choke").id == "carb-weber"
+    assert profile.deviations[0].verify_by == "read the stamping on the carb body"
+    assert [u.id for u in profile.unknowns] == ["engine-number", "weber-variant", "ignition-type"]
+    assert profile.systems_file == REPO / "profile" / "systems.yaml"
+    assert "ignition" in profile.system_ids()
+
+
+def test_rejects_an_unknown_without_its_systems(tmp_path):
+    path = tmp_path / "car.yaml"
+    path.write_text("vehicle: {id: x}\nunknowns:\n  - engine number\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="each unknown needs"):
+        load_profile(path)
 
 
 def test_rejects_an_unrecognized_confidence(tmp_path):

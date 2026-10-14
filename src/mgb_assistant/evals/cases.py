@@ -9,6 +9,7 @@ from pathlib import Path
 import yaml
 
 from mgb_assistant.evals.checks import CASE_CHECKS
+from mgb_assistant.paths import find_root
 
 MODALITIES = ("text", "voice")
 
@@ -42,14 +43,6 @@ class EvalSet:
     car_profile: Path
     metrics: tuple[str, ...]
     cases: tuple[Case, ...]
-
-
-def find_root(start: Path) -> Path:
-    """The repository root: the nearest folder holding pyproject.toml."""
-    for folder in [start, *start.parents]:
-        if (folder / "pyproject.toml").is_file():
-            return folder
-    raise EvalFileError(f"no pyproject.toml above {start}; can't resolve paths in the eval file")
 
 
 def load_eval_set(path: Path) -> EvalSet:

@@ -4,14 +4,20 @@ from __future__ import annotations
 
 import argparse
 import sys
+from collections.abc import Callable
 from pathlib import Path
 
-from mgb_assistant.evals.baselines import NullAssistant
-from mgb_assistant.evals.cases import load_eval_set
+from mgb_assistant.answer import Assistant
+from mgb_assistant.evals.baselines import NullAssistant, ProfileOnlyAssistant
+from mgb_assistant.evals.cases import EvalSet, load_eval_set
 from mgb_assistant.evals.runner import Run, run_evals, write_run
 from mgb_assistant.profile import load_profile
+from mgb_assistant.resolver import load_resolver
 
-ASSISTANTS = {"null": NullAssistant}
+ASSISTANTS: dict[str, Callable[[EvalSet], Assistant]] = {
+    "null": lambda eval_set: NullAssistant(),
+    "profile-only": lambda eval_set: ProfileOnlyAssistant(load_resolver(eval_set.car_profile)),
+}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -34,6 +40,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         eval_set = load_eval_set(args.eval_file)
         profile = load_profile(eval_set.car_profile)
+        assistant = ASSISTANTS[args.assistant](eval_set)
     except (OSError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
@@ -45,7 +52,7 @@ def main(argv: list[str] | None = None) -> int:
     run = run_evals(
         eval_set,
         profile,
-        ASSISTANTS[args.assistant](),
+        assistant,
         args.assistant,
         profile_settings=("on", "off") if args.profile == "both" else (args.profile,),
         case_ids=set(args.cases) if args.cases else None,
