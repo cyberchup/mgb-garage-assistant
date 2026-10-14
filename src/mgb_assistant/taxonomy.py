@@ -27,7 +27,7 @@ def _raw_words(text: str) -> list[str]:
     return _WORD.findall(text.lower().replace("’", "'").replace("'s", ""))
 
 
-def _words(text: str) -> tuple[str, ...]:
+def words(text: str) -> tuple[str, ...]:
     """Lowercase words with a trailing plural "s" dropped, so "carbs" and "carb" match."""
     return tuple(w[:-1] if len(w) > 2 and w.endswith("s") and not w.endswith("ss") else w for w in _raw_words(text))
 
@@ -51,19 +51,19 @@ class Taxonomy:
         self._terms: dict[tuple[str, ...], list[str]] = {}
         for system in self.systems.values():
             for term in system.terms:
-                self._terms.setdefault(_words(term), []).append(system.id)
+                self._terms.setdefault(words(term), []).append(system.id)
         self._longest = max((len(t) for t in self._terms), default=0)
 
     def match(self, question: str) -> list[Match]:
         """Terms in the question, longest first at each position, left to right."""
-        words, normalized = _raw_words(question), _words(question)
+        asked, normalized = _raw_words(question), words(question)
         matches: list[Match] = []
         i = 0
         while i < len(normalized):
             for length in range(min(self._longest, len(normalized) - i), 0, -1):
                 systems = self._terms.get(normalized[i : i + length])
                 if systems:
-                    matches.append(Match(" ".join(words[i : i + length]), tuple(systems)))
+                    matches.append(Match(" ".join(asked[i : i + length]), tuple(systems)))
                     i += length
                     break
             else:

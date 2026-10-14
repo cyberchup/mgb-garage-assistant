@@ -39,12 +39,13 @@ These are the product's requirements. Every feature and every test must hold to 
 - `profile/`: car profile YAML, and `systems.yaml`: the system ids and the words that point at them. Deviations, unknowns, source passages and questions all use these ids.
 - `schemas/`: example maintenance log entry.
 - `evals/v1.yaml`: eval questions and their machine checks. The harness reads this file.
-- `src/mgb_assistant/`: the Python package. `answer.py` holds the answer contract (citations with tier, printed page and system; `[n]` markers in the text). `resolver.py` is the profile resolver. `evals/` holds the harness and the baseline assistants.
+- `src/mgb_assistant/`: the Python package. `answer.py` holds the answer contract (citations with tier, printed page and system; `[n]` markers in the text). `resolver.py` is the profile resolver. `sources.py` holds the passage index format and `retriever.py` the tiered retriever (BM25 for now). `evals/` holds the harness and the baseline assistants.
 - `tests/`: pytest suite.
 - `runs/`: eval run records. Gitignored, since model answers can paraphrase the manual.
+- `index/`: the source index (`passages.jsonl`, page-cited passages tagged by tier and system). Gitignored, since it holds manual text.
 - `manuals/`: private source PDFs. Gitignored; **never commit manual content**.
 
-Commands (Python 3.12 via uv): `uv sync`, `uv run pytest`, `uv run python -m mgb_assistant.evals` (profile on and off; `--case ID` for one case; `--assistant profile-only`), `uv run python -m mgb_assistant.resolver "QUESTION"` (`--no-profile` for the ablation view).
+Commands (Python 3.12 via uv): `uv sync`, `uv run pytest`, `uv run python -m mgb_assistant.evals` (profile on and off; `--case ID` for one case; `--assistant profile-only`), `uv run python -m mgb_assistant.resolver "QUESTION"` and `uv run python -m mgb_assistant.retriever "QUESTION"` (both take `--no-profile` for the ablation view).
 
 ## Build phases
 

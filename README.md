@@ -25,6 +25,7 @@ uv run python -m mgb_assistant.evals            # profile on and off (the ablati
 uv run python -m mgb_assistant.evals --case T1  # one case
 uv run python -m mgb_assistant.evals --assistant profile-only
 uv run python -m mgb_assistant.resolver "How do I balance the carbs?"
+uv run python -m mgb_assistant.retriever "What's the float level on the Weber?"
 uv run pytest
 ```
 
@@ -33,6 +34,8 @@ Each run writes a record to `runs/` (gitignored, since model answers can paraphr
 There are two baseline assistants so far. `null` abstains on everything and sets the floor. `profile-only` says only what the profile resolver knows (overrides, unknowns, safety flags) with no retrieval, so its ablation gap is the profile's contribution on its own.
 
 The resolver command shows which systems a question touches, which profile entries override the manual, and what the answer has to say. Systems and the words that point at them live in `profile/systems.yaml`.
+
+The retriever command searches the source index (`index/passages.jsonl`, gitignored because it holds manual text) and shows the hits plus what it set aside: passages the profile demotes, and community sources that would stand alone on a brakes or fuel-line job. Within a system, the higher tier ranks first. Relevance is keyword-based (BM25) for now.
 
 ## Bring your own manual
 

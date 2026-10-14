@@ -9,6 +9,9 @@ CLAUDE.local.md
 # Eval run records: model answers can paraphrase manual content
 runs/
 
+# Source index: passages built from manuals/ carry manual text
+index/
+
 # Python
 __pycache__/
 *.pyc
