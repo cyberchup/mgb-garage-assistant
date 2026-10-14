@@ -1,0 +1,19 @@
+# Runs the test suite on every push to main and every pull request.
+# The tests need no network access, API keys, manuals or index, so CI needs no secrets.
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+      - name: Install dependencies from the lockfile
+        run: uv sync --locked --python 3.12
+      - name: Run tests
+        run: uv run pytest -q

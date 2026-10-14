@@ -1,5 +1,7 @@
 # MGB Garage Assistant
 
+[![tests](https://github.com/cyberchup/mgb-garage-assistant/actions/workflows/tests.yml/badge.svg)](https://github.com/cyberchup/mgb-garage-assistant/actions/workflows/tests.yml)
+
 A local voice-and-text assistant for a 1973 MGB Roadster that trusts the car's own record over the factory manual, and says so when the two disagree.
 
 > Status: early. Phase 0 (groundwork) → Phase 1 (text Q&A).

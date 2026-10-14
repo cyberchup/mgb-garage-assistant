@@ -66,8 +66,10 @@ Each phase ends on an eval gate, not on a feature list.
 - Keep the LLM behind the provider interface in `llm.py`, so the evals can compare providers on the same questions.
 - Everything except an optional hosted model must run offline.
 - Eval runs must be reproducible. Record the model, whether the profile was on or off, the eval file version and the date for each run.
-- Never copy manual text into the repo, eval answers, tests, fixtures or commit messages. Store values and page references only.
+- Never copy manual text into the repo, eval answers, tests, fixtures or commit messages. Store values and page references only. This covers every source document, and `drop_lines` patterns in `sources/` too, since a pattern quotes the document.
 - Ask before choosing major dependencies (LLM provider, vector store, speech models).
+- The repo is public. Commits use the GitHub noreply address (set in this repo's git config), never a personal email.
+- CI runs pytest on every push and pull request (`.github/workflows/tests.yml`), so tests must not need network access, API keys, manuals or the index.
 
 ## Decisions
 
@@ -75,10 +77,10 @@ Each phase ends on an eval gate, not on a feature list.
 - **PDF library:** pypdf (pure Python, BSD). Not PyMuPDF, whose AGPL license would cover the project.
 - **First tier 2 source:** the free Weber N.A. conversion kit installation guide (`sources/weber-install-guide.yaml`). It doesn't cover float level or jetting.
 - **LLM:** both, behind one interface. Hosted: Claude Opus 5.5 (`claude-opus-5-5`, effort `medium`, server-side refusal fallbacks on). Local: Ollama, default model `llama3.1:8b` (`MGB_OLLAMA_MODEL` overrides). Claude is the default; `MGB_LLM=ollama` switches it.
+- **Project name and repo:** `mgb-garage-assistant`, public at https://github.com/cyberchup/mgb-garage-assistant under the MIT license.
 
 ## Open questions (ask; don't assume)
 
 - The Weber variant (DGV, DGEV or DGAV) and its jetting; the engine number; points or electronic ignition.
 - The host: an EliteDesk, the Unraid server, or both.
 - Which device sits at the garage bench, and Wi-Fi coverage there.
-- The project name.
