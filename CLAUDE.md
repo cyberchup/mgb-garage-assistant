@@ -62,9 +62,12 @@ Each phase ends on an eval gate, not on a feature list.
 - Never copy manual text into the repo, eval answers, tests, fixtures or commit messages. Store values and page references only.
 - Ask before choosing major dependencies (LLM provider, vector store, speech models).
 
+## Decisions
+
+- **Manual:** the factory workshop manual reprint (MGB and MGB GT, 1962–1980, ISBN 9781855201743). It's a paper copy, to be scanned into a searchable PDF in `manuals/`. Citations use the page numbers printed in the book, not the PDF's own page numbers.
+
 ## Open questions (ask; don't assume)
 
-- Which manual(s): Haynes, Bentley or the factory workshop manual? Is it a PDF, or paper that needs scanning?
 - The Weber variant (DGV, DGEV or DGAV) and its jetting; the engine number; points or electronic ignition.
 - Local LLM or hosted API.
 - The host: an EliteDesk, the Unraid server, or both.
