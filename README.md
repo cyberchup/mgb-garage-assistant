@@ -15,6 +15,19 @@ This car runs a Weber carburetor instead of the factory twin SUs, so every fuel-
 
 Each of these is measured by an eval set (`evals/v1.yaml`), including a profile ablation that runs the same questions with the profile switched off.
 
+## Running the evals
+
+Requires [uv](https://docs.astral.sh/uv/).
+
+```
+uv sync
+uv run python -m mgb_assistant.evals            # profile on and off (the ablation)
+uv run python -m mgb_assistant.evals --case T1  # one case
+uv run pytest
+```
+
+Each run writes a record to `runs/` (gitignored, since model answers can paraphrase the manual) with the model, the profile setting, the eval file's version and hash, the git commit and the date. Only the `null` baseline assistant exists so far: it abstains on everything and sets the floor.
+
 ## Bring your own manual
 
 Workshop manuals are copyrighted and aren't included. Put your own PDFs in `manuals/` (gitignored).

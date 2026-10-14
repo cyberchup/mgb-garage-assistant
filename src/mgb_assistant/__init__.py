@@ -1,0 +1,1 @@
+"""MGB garage assistant."""

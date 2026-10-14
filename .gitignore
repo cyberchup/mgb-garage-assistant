@@ -6,7 +6,11 @@ manuals/*
 CLAUDE.local.md
 .env
 
+# Eval run records: model answers can paraphrase manual content
+runs/
+
 # Python
 __pycache__/
 *.pyc
 .venv/
+.pytest_cache/

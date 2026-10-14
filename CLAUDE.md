@@ -38,8 +38,13 @@ These are the product's requirements. Every feature and every test must hold to 
 
 - `profile/`: car profile YAML.
 - `schemas/`: example maintenance log entry.
-- `evals/v1.yaml`: eval questions. The harness reads this file.
+- `evals/v1.yaml`: eval questions and their machine checks. The harness reads this file.
+- `src/mgb_assistant/`: the Python package. `answer.py` holds the answer contract (citations with tier, printed page and system; `[n]` markers in the text). `evals/` holds the harness.
+- `tests/`: pytest suite.
+- `runs/`: eval run records. Gitignored, since model answers can paraphrase the manual.
 - `manuals/`: private source PDFs. Gitignored; **never commit manual content**.
+
+Commands (Python 3.12 via uv): `uv sync`, `uv run pytest`, `uv run python -m mgb_assistant.evals` (profile on and off; `--case ID` for one case).
 
 ## Build phases
 

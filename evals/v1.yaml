@@ -8,6 +8,12 @@
 # actually overrides the workshop manual. Run every eval twice, with the profile
 # on and off (the ablation), and record the model, profile on/off, file version
 # and date for each run.
+#
+# Grading: `checks` are machine checks the harness runs on a case. Whatever needs
+# judgment goes in `review`, for a person to confirm once the machine checks pass.
+# Every text answer also gets the global checks from CLAUDE.md rule 5, so they
+# aren't repeated per case: citations_valid, grounded and no_uncited_numbers.
+# Run: uv run python -m mgb_assistant.evals
 
 version: 1
 car_profile: profile/mgb-1973.yaml
@@ -32,6 +38,9 @@ cases:
     expected_source: {tier: 3, page: null}
     expected_behavior: Gives 1-3-4-2 and cites the manual page.
     pass_when: Correct value and a cited page that contains it.
+    checks:
+      contains_expected: true
+      cites_expected_source: true
 
   - id: S2
     category: spec_lookup
@@ -41,6 +50,9 @@ cases:
     expected_source: {tier: 3, page: null}
     expected_behavior: Manual value with units, cited.
     pass_when: Matches the manual and cites the page.
+    checks:
+      contains_expected: true
+      cites_expected_source: true
 
   - id: S3
     category: spec_lookup
@@ -50,6 +62,9 @@ cases:
     expected_source: {tier: 3, page: null}
     expected_behavior: Value and condition from the manual, cited.
     pass_when: Both correct and cited.
+    checks:
+      contains_expected: true
+      cites_expected_source: true
 
   - id: S4
     category: spec_lookup
@@ -59,6 +74,9 @@ cases:
     expected_source: {tier: 3, page: null}
     expected_behavior: Torque value and sequence from the manual, cited.
     pass_when: Both correct and cited.
+    checks:
+      contains_expected: true
+      cites_expected_source: true
 
   # --- Weber traps (profile must override tier 3) ---
   - id: T1
@@ -69,6 +87,11 @@ cases:
       Notes the car has a single Weber, so there's nothing to balance between
       carbs; points to Weber idle and mixture adjustment from tier 2.
     pass_when: No SU balancing procedure in the answer; conflict stated.
+    checks:
+      no_demoted_citations: true
+      cites_tier: [1, 2]
+      conflict_stated: true
+      review: Points to Weber idle and mixture adjustment; no SU balancing steps.
 
   - id: T2
     category: weber_trap
@@ -76,6 +99,10 @@ cases:
     question: "What needle should I run?"
     expected_behavior: Says SU needles don't apply; the Weber is tuned with jets.
     pass_when: No SU needle codes in the answer.
+    checks:
+      no_demoted_citations: true
+      cites_tier: [1, 2]
+      review: Says SU needles don't apply and the Weber is tuned with jets; no SU needle codes.
 
   - id: T3
     category: weber_trap
@@ -83,6 +110,10 @@ cases:
     question: "How do I top up the carb dampers?"
     expected_behavior: Says SU damper oil doesn't apply to the Weber.
     pass_when: No SU damper procedure in the answer.
+    checks:
+      no_demoted_citations: true
+      cites_tier: [1, 2]
+      review: Says SU damper oil doesn't apply; no SU damper procedure.
 
   # --- Confidence (believed/unknown facts) ---
   - id: C1
@@ -91,6 +122,8 @@ cases:
     question: "What jets are in my carb?"
     expected_behavior: Says the jetting is unknown and explains how to check.
     pass_when: No invented jet sizes.
+    checks:  # an invented jet size fails the global no_uncited_numbers check
+      review: Says the jetting is unknown and explains how to check.
 
   - id: C2
     category: confidence
@@ -100,6 +133,8 @@ cases:
       Says it depends on the Weber variant (DGV, DGEV or DGAV) and asks you to
       check the stamping.
     pass_when: No definite answer while the variant is unconfirmed.
+    checks:
+      review: Says it depends on the Weber variant and asks to check the stamping; no definite answer.
 
   # --- Log-grounded ---
   - id: L1
@@ -108,6 +143,8 @@ cases:
     question: "When did I last set the points gap?"
     expected_behavior: Date and value from the log, or "no record" if none.
     pass_when: Answers from the log only, never from the manual.
+    checks:
+      log_only: true
 
   # --- Abstention ---
   - id: A1
@@ -116,6 +153,7 @@ cases:
     question: "What's the torque on the Weber manifold adapter nuts?"
     expected_behavior: If no source covers it, says so.
     pass_when: No uncited number.
+    # No case checks: the global grounded and no_uncited_numbers checks cover it.
 
   # --- Safety-critical ---
   - id: F1
@@ -124,6 +162,10 @@ cases:
     question: "Walk me through bleeding the brakes."
     expected_behavior: Cited procedure, a safety flag, and a second-source prompt.
     pass_when: Safety flag present; tier 4 not used alone.
+    checks:
+      safety_flag: true
+      not_tier4_alone: true
+      review: Prompts to check a second source.
 
   # --- Recommissioning ---
   - id: R1
@@ -134,6 +176,10 @@ cases:
       Checklist covering old fuel in the Weber, oil, brakes and battery, cited
       across tiers 1-3.
     pass_when: Mentions the Weber, not SUs; cited.
+    checks:
+      must_mention: [Weber]
+      no_demoted_citations: true
+      review: Covers old fuel in the Weber, oil, brakes and battery.
 
   # --- Voice ---
   - id: V1
