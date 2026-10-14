@@ -1,0 +1,156 @@
+# Eval set v1 for the MGB garage assistant.
+#
+# Ground truth for spec lookups comes from YOUR manual, not from a model:
+# fill expected_answer with a value and expected_source.page with the page.
+# Never paste manual text here.
+#
+# The Weber traps (T*) are the headline test: they pass only if the car profile
+# actually overrides the workshop manual. Run every eval twice, with the profile
+# on and off (the ablation), and record the model, profile on/off, file version
+# and date for each run.
+
+version: 1
+car_profile: profile/mgb-1973.yaml
+
+metrics:
+  - spec_accuracy          # answers matching the manual
+  - citation_accuracy      # cited page/entry actually contains the fact
+  - override_accuracy      # Weber traps with no SU content
+  - profile_ablation_gap   # score with profile minus score without
+  - uncited_numbers_per_100  # target: 0
+  - voice_term_accuracy    # technical terms transcribed correctly, quiet vs noisy
+  - voice_number_accuracy  # numbers transcribed correctly, quiet vs noisy
+  - readback_catch_rate    # misheard numbers caught before being written
+
+cases:
+  # --- Spec lookups (tier 3) ---
+  - id: S1
+    category: spec_lookup
+    modality: text
+    question: "What's the firing order?"
+    expected_answer: "1-3-4-2"
+    expected_source: {tier: 3, page: null}
+    expected_behavior: Gives 1-3-4-2 and cites the manual page.
+    pass_when: Correct value and a cited page that contains it.
+
+  - id: S2
+    category: spec_lookup
+    modality: text
+    question: "What's the points gap?"
+    expected_answer: null      # fill from your manual, with units
+    expected_source: {tier: 3, page: null}
+    expected_behavior: Manual value with units, cited.
+    pass_when: Matches the manual and cites the page.
+
+  - id: S3
+    category: spec_lookup
+    modality: text
+    question: "What's the valve clearance, and is it set hot or cold?"
+    expected_answer: null      # value + condition, from your manual
+    expected_source: {tier: 3, page: null}
+    expected_behavior: Value and condition from the manual, cited.
+    pass_when: Both correct and cited.
+
+  - id: S4
+    category: spec_lookup
+    modality: text
+    question: "What's the head nut torque and tightening order?"
+    expected_answer: null      # value + sequence reference, from your manual
+    expected_source: {tier: 3, page: null}
+    expected_behavior: Torque value and sequence from the manual, cited.
+    pass_when: Both correct and cited.
+
+  # --- Weber traps (profile must override tier 3) ---
+  - id: T1
+    category: weber_trap
+    modality: text
+    question: "How do I balance the carbs?"
+    expected_behavior: >
+      Notes the car has a single Weber, so there's nothing to balance between
+      carbs; points to Weber idle and mixture adjustment from tier 2.
+    pass_when: No SU balancing procedure in the answer; conflict stated.
+
+  - id: T2
+    category: weber_trap
+    modality: text
+    question: "What needle should I run?"
+    expected_behavior: Says SU needles don't apply; the Weber is tuned with jets.
+    pass_when: No SU needle codes in the answer.
+
+  - id: T3
+    category: weber_trap
+    modality: text
+    question: "How do I top up the carb dampers?"
+    expected_behavior: Says SU damper oil doesn't apply to the Weber.
+    pass_when: No SU damper procedure in the answer.
+
+  # --- Confidence (believed/unknown facts) ---
+  - id: C1
+    category: confidence
+    modality: text
+    question: "What jets are in my carb?"
+    expected_behavior: Says the jetting is unknown and explains how to check.
+    pass_when: No invented jet sizes.
+
+  - id: C2
+    category: confidence
+    modality: text
+    question: "Is my choke manual or electric?"
+    expected_behavior: >
+      Says it depends on the Weber variant (DGV, DGEV or DGAV) and asks you to
+      check the stamping.
+    pass_when: No definite answer while the variant is unconfirmed.
+
+  # --- Log-grounded ---
+  - id: L1
+    category: log
+    modality: text
+    question: "When did I last set the points gap?"
+    expected_behavior: Date and value from the log, or "no record" if none.
+    pass_when: Answers from the log only, never from the manual.
+
+  # --- Abstention ---
+  - id: A1
+    category: abstention
+    modality: text
+    question: "What's the torque on the Weber manifold adapter nuts?"
+    expected_behavior: If no source covers it, says so.
+    pass_when: No uncited number.
+
+  # --- Safety-critical ---
+  - id: F1
+    category: safety
+    modality: text
+    question: "Walk me through bleeding the brakes."
+    expected_behavior: Cited procedure, a safety flag, and a second-source prompt.
+    pass_when: Safety flag present; tier 4 not used alone.
+
+  # --- Recommissioning ---
+  - id: R1
+    category: recommissioning
+    modality: text
+    question: "It's sat a year. What do I do before cranking it?"
+    expected_behavior: >
+      Checklist covering old fuel in the Weber, oil, brakes and battery, cited
+      across tiers 1-3.
+    pass_when: Mentions the Weber, not SUs; cited.
+
+  # --- Voice ---
+  - id: V1
+    category: voice
+    modality: voice
+    utterance: "Log it: points gap fifteen thou"
+    audio:
+      - evals/audio/v1-quiet.wav        # to record
+      - evals/audio/v1-compressor.wav   # to record, compressor running
+    expected_behavior: Transcribes 0.015 in, reads it back, writes only after yes.
+    pass_when: Exact number and a confirmation step, in both recordings.
+
+  - id: V2
+    category: voice
+    modality: voice
+    utterance: "What's the float level on the Weber?"
+    audio:
+      - evals/audio/v2-noisy.wav        # to record
+    expected_behavior: '"Weber" transcribed correctly; answer from tier 2.'
+    pass_when: Term correct and answer from the right tier.

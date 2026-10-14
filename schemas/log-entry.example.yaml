@@ -1,0 +1,30 @@
+# Maintenance log entry: one per job, typed or spoken.
+# Tier 1 source. Values below are illustrative.
+#
+# Rules:
+# - Voice entries start with confirmed: false and only flip to true after the user
+#   accepts the read-back. Unconfirmed entries never feed an answer.
+# - Each measurement can point at the spec it was checked against (value + page ref,
+#   never copied manual text).
+# - An entry that settles a profile unknown (e.g. reading the Weber's stamping)
+#   proposes a profile update; the user approves it before the profile changes.
+# - "When did I last..." questions answer from the log alone, citing the entry date.
+
+- id: 2026-10-20-01
+  date: 2026-10-20
+  odometer_mi: null
+  system: ignition.points
+  action: set points gap
+  parts: []
+  measurements:
+    - name: points_gap
+      value: 0.015
+      unit: in
+      spec_ref:
+        tier: 3
+        source: workshop manual
+        page: null          # fill in
+  observations: null
+  source: voice             # voice | text
+  confirmed: true           # voice entries start false
+  proposes_profile_update: null

@@ -1,0 +1,38 @@
+# Car profile: the car as it actually sits, not as it left the factory.
+# Tier 1 source. Deviations here outrank the workshop manual for the systems they affect.
+# Every null is something to confirm.
+
+vehicle:
+  id: mgb-1973
+  year: 1973
+  make: MG
+  model: MGB
+  body: roadster
+  bumpers: chrome
+  engine:
+    family: B-series
+    displacement_cc: 1798
+    engine_number: null      # read from the block plate; several specs depend on it
+  chassis_number: null
+
+goal: reliable driver, improved over time (not concours)
+
+status:
+  last_ran: 2025-10          # approximate
+  notes: sitting since last run
+
+deviations:
+  - id: carb-weber
+    system: fuel.carburetor
+    factory_spec: twin SU HS4
+    as_found: Weber 32/36, variant unknown
+    confidence: believed     # confirmed | believed | unknown
+    verify_by: read the stamping on the carb body
+    affects: [fuel.carburetor, fuel.choke, fuel.air_filter, tuning.mixture, tuning.idle]
+    demotes_tiers: [3]
+    notes: choke type (manual, electric or water) depends on the variant
+
+unknowns:
+  - engine number
+  - Weber variant and jetting
+  - ignition type (points or electronic)

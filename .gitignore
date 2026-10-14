@@ -1,0 +1,12 @@
+# Private source material: never commit manual content
+manuals/*
+!manuals/README.md
+
+# Local instructions and secrets
+CLAUDE.local.md
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
