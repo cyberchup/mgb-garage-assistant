@@ -40,13 +40,13 @@ These are the product's requirements. Every feature and every test must hold to 
 - `sources/`: one metadata file per document (tier, PDF path, page ranges to systems, page-number labels, boilerplate patterns). Committed, so page references only: never document text.
 - `schemas/`: example maintenance log entry.
 - `evals/v1.yaml`: eval questions and their machine checks. The harness reads this file.
-- `src/mgb_assistant/`: the Python package. `answer.py` holds the answer contract (citations with tier, printed page and system; `[n]` markers in the text). `resolver.py` is the profile resolver. `sources.py` holds the passage index format, `ingest.py` builds the index from PDFs (pypdf), and `retriever.py` is the tiered retriever (BM25 for now). `evals/` holds the harness and the baseline assistants.
+- `src/mgb_assistant/`: the Python package. `answer.py` holds the answer contract (citations with tier, printed page and system; `[n]` markers in the text). `resolver.py` is the profile resolver. `sources.py` holds the passage index format, `ingest.py` builds the index from PDFs (pypdf), and `retriever.py` is the tiered retriever (BM25 for now). `composer.py` turns resolver notes and retrieved passages into a cited answer and enforces the rules on the model's output; `llm.py` holds the provider interface and the Claude and Ollama providers; `grounding.py` holds the citation and number rules that both the composer and the eval checks use. `evals/` holds the harness and the baseline assistants.
 - `tests/`: pytest suite.
 - `runs/`: eval run records. Gitignored, since model answers can paraphrase the manual.
 - `index/`: the source index (`passages.jsonl`, page-cited passages tagged by tier and system). Gitignored, since it holds manual text.
 - `manuals/`: private source PDFs. Gitignored; **never commit manual content**.
 
-Commands (Python 3.12 via uv): `uv sync`, `uv run pytest`, `uv run python -m mgb_assistant.evals` (profile on and off; `--case ID` for one case; `--assistant profile-only`), `uv run python -m mgb_assistant.ingest` (rebuilds `index/` from `sources/`), `uv run python -m mgb_assistant.resolver "QUESTION"` and `uv run python -m mgb_assistant.retriever "QUESTION"` (both take `--no-profile` for the ablation view).
+Commands (Python 3.12 via uv): `uv sync`, `uv run pytest`, `uv run python -m mgb_assistant.composer "QUESTION"` (`--llm ollama` for the local model), `uv run python -m mgb_assistant.evals` (profile on and off; `--case ID` for one case; `--assistant profile-only|claude|ollama`; a Claude run costs money, so ask first), `uv run python -m mgb_assistant.ingest` (rebuilds `index/` from `sources/`), `uv run python -m mgb_assistant.resolver "QUESTION"` and `uv run python -m mgb_assistant.retriever "QUESTION"` (both take `--no-profile` for the ablation view).
 
 ## Build phases
 
@@ -63,7 +63,7 @@ Each phase ends on an eval gate, not on a feature list.
 
 ## Conventions
 
-- Put the LLM behind a provider interface. Whether to use a local model or a hosted API is still undecided.
+- Keep the LLM behind the provider interface in `llm.py`, so the evals can compare providers on the same questions.
 - Everything except an optional hosted model must run offline.
 - Eval runs must be reproducible. Record the model, whether the profile was on or off, the eval file version and the date for each run.
 - Never copy manual text into the repo, eval answers, tests, fixtures or commit messages. Store values and page references only.
@@ -74,11 +74,11 @@ Each phase ends on an eval gate, not on a feature list.
 - **Manual:** the factory workshop manual reprint (MGB and MGB GT, 1962–1980, ISBN 9781855201743). It's a paper copy, to be scanned into a searchable PDF in `manuals/`. Citations use the page numbers printed in the book, not the PDF's own page numbers.
 - **PDF library:** pypdf (pure Python, BSD). Not PyMuPDF, whose AGPL license would cover the project.
 - **First tier 2 source:** the free Weber N.A. conversion kit installation guide (`sources/weber-install-guide.yaml`). It doesn't cover float level or jetting.
+- **LLM:** both, behind one interface. Hosted: Claude Opus 5.5 (`claude-opus-5-5`, effort `medium`, server-side refusal fallbacks on). Local: Ollama, default model `llama3.1:8b` (`MGB_OLLAMA_MODEL` overrides). Claude is the default; `MGB_LLM=ollama` switches it.
 
 ## Open questions (ask; don't assume)
 
 - The Weber variant (DGV, DGEV or DGAV) and its jetting; the engine number; points or electronic ignition.
-- Local LLM or hosted API.
 - The host: an EliteDesk, the Unraid server, or both.
 - Which device sits at the garage bench, and Wi-Fi coverage there.
 - The project name.

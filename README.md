@@ -15,6 +15,20 @@ This car runs a Weber carburetor instead of the factory twin SUs, so every fuel-
 
 Each of these is measured by an eval set (`evals/v1.yaml`), including a profile ablation that runs the same questions with the profile switched off.
 
+## Asking a question
+
+```
+uv run python -m mgb_assistant.composer "How do I set the idle mixture?"              # Claude
+uv run python -m mgb_assistant.composer "How do I set the idle mixture?" --llm ollama # local model
+```
+
+The composer runs the profile resolver and the retriever, sends the numbered sources to the model, and then enforces the rules on what comes back: citation markers must point at real sources, a sentence that states a number without one is dropped, and the profile's conflict line, verify prompts, unknowns and safety prompt are added word for word. A question with nothing to ground it never reaches the model.
+
+Two providers sit behind the same interface (`src/mgb_assistant/llm.py`):
+
+- **Claude** (`claude-opus-5-5`, the default): set `ANTHROPIC_API_KEY` in your environment (create a key in the Anthropic Console), or log in with the `ant` CLI. Requests opt into server-side refusal fallbacks, so a question a safety classifier declines is retried on Anthropic's recommended fallback model.
+- **Ollama** (offline): install Ollama, pull a model, and pass `--llm ollama`. The default is `llama3.1:8b`; set `MGB_OLLAMA_MODEL` to use another. Set `MGB_LLM=ollama` to make it the default.
+
 ## Running the evals
 
 Requires [uv](https://docs.astral.sh/uv/).
@@ -31,7 +45,7 @@ uv run pytest
 
 Each run writes a record to `runs/` (gitignored, since model answers can paraphrase the manual) with the model, the profile setting, the eval file's version and hash, the git commit and the date.
 
-There are two baseline assistants so far. `null` abstains on everything and sets the floor. `profile-only` says only what the profile resolver knows (overrides, unknowns, safety flags) with no retrieval, so its ablation gap is the profile's contribution on its own.
+There are two baseline assistants. `null` abstains on everything and sets the floor. `profile-only` says only what the profile resolver knows (overrides, unknowns, safety flags) with no retrieval, so its ablation gap is the profile's contribution on its own. `--assistant claude` and `--assistant ollama` run the real composer; a Claude run calls the API once per answered case and profile setting, so it costs money (roughly a dollar for the full ablation with Opus 5.5).
 
 The resolver command shows which systems a question touches, which profile entries override the manual, and what the answer has to say. Systems and the words that point at them live in `profile/systems.yaml`.
 

@@ -5,6 +5,7 @@ description = "Local voice-and-text assistant for a 1973 MGB Roadster."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "anthropic>=1.14.0",
     "pypdf>=6.20.1",
     "pyyaml>=6.0",
 ]

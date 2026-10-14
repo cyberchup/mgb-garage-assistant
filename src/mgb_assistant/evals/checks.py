@@ -12,6 +12,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from mgb_assistant.answer import Answer
+from mgb_assistant.grounding import MARKER as _MARKER
+from mgb_assistant.grounding import uncited_numbers
 from mgb_assistant.profile import Profile
 
 if TYPE_CHECKING:
@@ -23,46 +25,6 @@ class CheckResult:
     name: str
     status: str  # pass | fail | not_ready
     detail: str = ""
-
-
-_MARKER = re.compile(r"\[(\d+)\]")
-# A standalone number, kept whole across separators: 0.015, 1-3-4-2, 32/36. Units may follow
-# ("0.015in", "12V"), but a letter or digit may not come before it, so "HS4" is not a number.
-_NUMBER = re.compile(r"(?<![A-Za-z0-9.])\d+(?:[-–./:]\d+)*")
-_LIST_PREFIX = re.compile(r"^\s*(?:\d+[.)]|[-*•])\s+")
-_SENTENCE_END = re.compile(r"(?<=[.!?])\s+")
-
-
-def _sentences(text: str) -> list[str]:
-    sentences: list[str] = []
-    for line in text.splitlines():
-        for piece in _SENTENCE_END.split(_LIST_PREFIX.sub("", line)):
-            if not piece.strip():
-                continue
-            if sentences and not _MARKER.sub("", piece).strip():
-                sentences[-1] += " " + piece  # "... 0.015 in. [1]": the marker belongs to its sentence
-            else:
-                sentences.append(piece)
-    return sentences
-
-
-def uncited_numbers(answer: Answer) -> list[str]:
-    """Numbers stated without a source.
-
-    A number in the full answer counts as cited when its sentence carries a valid marker.
-    A number in the spoken answer counts as cited when the full answer cites it.
-    """
-    valid = set(range(1, len(answer.citations) + 1))
-    cited: set[str] = set()
-    uncited: list[str] = []
-    for sentence in _sentences(answer.full):
-        numbers = _NUMBER.findall(_MARKER.sub("", sentence))
-        if valid & {int(m) for m in _MARKER.findall(sentence)}:
-            cited.update(numbers)
-        else:
-            uncited.extend(numbers)
-    uncited.extend(n for n in _NUMBER.findall(answer.spoken) if n not in cited and n not in uncited)
-    return uncited
 
 
 def _normalize(text: str) -> str:

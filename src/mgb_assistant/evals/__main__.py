@@ -8,15 +8,29 @@ from collections.abc import Callable
 from pathlib import Path
 
 from mgb_assistant.answer import Assistant
+from mgb_assistant.composer import Composer, make_llm
 from mgb_assistant.evals.baselines import NullAssistant, ProfileOnlyAssistant
 from mgb_assistant.evals.cases import EvalSet, load_eval_set
 from mgb_assistant.evals.runner import Run, run_evals, write_run
+from mgb_assistant.paths import DEFAULT_INDEX
 from mgb_assistant.profile import load_profile
 from mgb_assistant.resolver import load_resolver
+from mgb_assistant.retriever import load_retriever
+
+
+def _composer(llm_name: str) -> Callable[[EvalSet], Assistant]:
+    def build(eval_set: EvalSet) -> Assistant:
+        return Composer(load_retriever(eval_set.root / DEFAULT_INDEX, eval_set.car_profile), make_llm(llm_name))
+
+    return build
+
 
 ASSISTANTS: dict[str, Callable[[EvalSet], Assistant]] = {
     "null": lambda eval_set: NullAssistant(),
     "profile-only": lambda eval_set: ProfileOnlyAssistant(load_resolver(eval_set.car_profile)),
+    # The real pipeline: resolver, retriever and an LLM. These call a model and, for Claude, cost money.
+    "claude": _composer("claude"),
+    "ollama": _composer("ollama"),
 }
 
 
