@@ -1,0 +1,54 @@
+# Invented maintenance log for the evals, so log questions have a known answer.
+# Not the car's real log (that lives in log/, which is gitignored).
+
+- id: 2025-09-14-01
+  date: 2025-09-14
+  odometer_mi: 61210
+  system: ignition.points
+  action: set points gap
+  parts: []
+  measurements:
+    - {name: points_gap, value: 0.016, unit: in}
+  observations: null
+  source: text
+  confirmed: true
+  proposes_profile_update: null
+
+- id: 2026-10-11-01
+  date: 2026-10-11
+  odometer_mi: 61240
+  system: ignition.points
+  action: set points gap
+  parts: []
+  measurements:
+    - {name: points_gap, value: 0.015, unit: in}
+  observations: null
+  source: text
+  confirmed: true
+  proposes_profile_update: null
+
+- id: 2026-10-11-02
+  date: 2026-10-11
+  odometer_mi: 61240
+  system: engine.lubrication
+  action: changed oil and filter
+  parts: [oil filter]
+  measurements: []
+  observations: null
+  source: text
+  confirmed: true
+  proposes_profile_update: null
+
+# A trap: newer, but never confirmed after its read-back. Rule 7 says it must not feed answers.
+- id: 2026-10-12-01
+  date: 2026-10-12
+  odometer_mi: null
+  system: ignition.points
+  action: set points gap
+  parts: []
+  measurements:
+    - {name: points_gap, value: 0.018, unit: in}
+  observations: null
+  source: voice
+  confirmed: false
+  proposes_profile_update: null

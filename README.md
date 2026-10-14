@@ -20,16 +20,27 @@ Each of these is measured by an eval set (`evals/v1.yaml`), including a profile 
 ## Asking a question
 
 ```
-uv run python -m mgb_assistant.composer "How do I set the idle mixture?"              # Claude
-uv run python -m mgb_assistant.composer "How do I set the idle mixture?" --llm ollama # local model
+uv run python -m mgb_assistant "How do I set the idle mixture?"              # Claude
+uv run python -m mgb_assistant "How do I set the idle mixture?" --llm ollama # local model
+uv run python -m mgb_assistant "When did I last set the points gap?"         # from the log
 ```
 
-The composer runs the profile resolver and the retriever, sends the numbered sources to the model, and then enforces the rules on what comes back: citation markers must point at real sources, a sentence that states a number without one is dropped, and the profile's conflict line, verify prompts, unknowns and safety prompt are added word for word. A question with nothing to ground it never reaches the model.
+The orchestrator sends "when did I last..." questions to the maintenance log, which answers from the log alone and cites the entry, with no model call. Everything else goes to the composer, which runs the profile resolver and the retriever, sends the numbered sources to the model, and then enforces the rules on what comes back: citation markers must point at real sources, a sentence that states a number without one is dropped, and the profile's conflict line, verify prompts, unknowns and safety prompt are added word for word. A question with nothing to ground it never reaches the model.
 
 Two providers sit behind the same interface (`src/mgb_assistant/llm.py`):
 
 - **Claude** (`claude-opus-5-5`, the default): set `ANTHROPIC_API_KEY` in your environment (create a key in the Anthropic Console), or log in with the `ant` CLI. Requests opt into server-side refusal fallbacks, so a question a safety classifier declines is retried on Anthropic's recommended fallback model.
 - **Ollama** (offline): install Ollama, pull a model, and pass `--llm ollama`. The default is `llama3.1:8b`; set `MGB_OLLAMA_MODEL` to use another. Set `MGB_LLM=ollama` to make it the default.
+
+## The maintenance log
+
+```
+uv run python -m mgb_assistant.logbook add --system ignition.points --action "set points gap" --measure points_gap=15thou --odometer 61240
+uv run python -m mgb_assistant.logbook list
+uv run python -m mgb_assistant.logbook proposals
+```
+
+Each job is one entry in `log/maintenance.yaml`, in the format of `schemas/log-entry.example.yaml`. The log is gitignored, since it holds personal dates and readings. It's append-only, and every entry is read back with all its numbers before anything is written; "15thou" is logged as 0.015 in. Only confirmed entries feed answers. An entry that settles a profile unknown, such as `--proposes weber-variant=DGV` after reading the carb's stamping, waits under `proposals` for your approval before the profile changes.
 
 ## Running the evals
 

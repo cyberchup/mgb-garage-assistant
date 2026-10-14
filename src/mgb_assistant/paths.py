@@ -6,6 +6,7 @@ from pathlib import Path
 
 DEFAULT_PROFILE = Path("profile") / "mgb-1973.yaml"
 DEFAULT_INDEX = Path("index") / "passages.jsonl"  # built from manuals/, so gitignored like them
+DEFAULT_LOG = Path("log") / "maintenance.yaml"  # personal, so gitignored
 
 
 def find_root(start: Path) -> Path:

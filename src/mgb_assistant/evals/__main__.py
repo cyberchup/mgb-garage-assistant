@@ -12,15 +12,20 @@ from mgb_assistant.composer import Composer, make_llm
 from mgb_assistant.evals.baselines import NullAssistant, ProfileOnlyAssistant
 from mgb_assistant.evals.cases import EvalSet, load_eval_set
 from mgb_assistant.evals.runner import Run, run_evals, write_run
+from mgb_assistant.logbook import load_logbook
+from mgb_assistant.orchestrator import Orchestrator
 from mgb_assistant.paths import DEFAULT_INDEX
 from mgb_assistant.profile import load_profile
 from mgb_assistant.resolver import load_resolver
 from mgb_assistant.retriever import load_retriever
 
 
-def _composer(llm_name: str) -> Callable[[EvalSet], Assistant]:
+def _pipeline(llm_name: str) -> Callable[[EvalSet], Assistant]:
+    """The real assistant. It reads the eval file's fixture log, never the owner's real one."""
+
     def build(eval_set: EvalSet) -> Assistant:
-        return Composer(load_retriever(eval_set.root / DEFAULT_INDEX, eval_set.car_profile), make_llm(llm_name))
+        composer = Composer(load_retriever(eval_set.root / DEFAULT_INDEX, eval_set.car_profile), make_llm(llm_name))
+        return Orchestrator(composer, load_logbook(eval_set.maintenance_log, eval_set.car_profile))
 
     return build
 
@@ -28,9 +33,10 @@ def _composer(llm_name: str) -> Callable[[EvalSet], Assistant]:
 ASSISTANTS: dict[str, Callable[[EvalSet], Assistant]] = {
     "null": lambda eval_set: NullAssistant(),
     "profile-only": lambda eval_set: ProfileOnlyAssistant(load_resolver(eval_set.car_profile)),
-    # The real pipeline: resolver, retriever and an LLM. These call a model and, for Claude, cost money.
-    "claude": _composer("claude"),
-    "ollama": _composer("ollama"),
+    # The real pipeline: orchestrator, log, resolver, retriever and an LLM. These call a model and,
+    # for Claude, cost money.
+    "claude": _pipeline("claude"),
+    "ollama": _pipeline("ollama"),
 }
 
 

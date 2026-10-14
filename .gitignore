@@ -12,6 +12,9 @@ runs/
 # Source index: passages built from manuals/ carry manual text
 index/
 
+# The maintenance log: personal dates, odometer readings and notes, and the repo is public
+log/
+
 # Python
 __pycache__/
 *.pyc

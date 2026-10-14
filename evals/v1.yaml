@@ -17,6 +17,7 @@
 
 version: 1
 car_profile: profile/mgb-1973.yaml
+maintenance_log: evals/fixtures/maintenance-log.yaml   # invented entries, so L1 has a known answer
 
 metrics:
   - spec_accuracy          # answers matching the manual
@@ -141,10 +142,13 @@ cases:
     category: log
     modality: text
     question: "When did I last set the points gap?"
+    # From the fixture log: the newest confirmed entry, not the newer unconfirmed one.
+    expected_answer: ["2026-10-11", "0.015"]
     expected_behavior: Date and value from the log, or "no record" if none.
     pass_when: Answers from the log only, never from the manual.
     checks:
       log_only: true
+      contains_expected: true
 
   # --- Abstention ---
   - id: A1

@@ -43,6 +43,7 @@ class EvalSet:
     car_profile: Path
     metrics: tuple[str, ...]
     cases: tuple[Case, ...]
+    maintenance_log: Path | None = None  # a fixture log, so log questions have a known answer
 
 
 def load_eval_set(path: Path) -> EvalSet:
@@ -72,6 +73,7 @@ def load_eval_set(path: Path) -> EvalSet:
         car_profile=root / data["car_profile"],
         metrics=tuple(data.get("metrics") or ()),
         cases=cases,
+        maintenance_log=root / data["maintenance_log"] if data.get("maintenance_log") else None,
     )
 
 
