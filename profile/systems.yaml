@@ -12,6 +12,15 @@
 # safety_critical marks jobs that get a safety flag and a second-source prompt
 # (CLAUDE.md rule 6). It applies to everything under that system too.
 
+# Words that mean the same thing, folded together before matching and search,
+# so a question about "carbs" finds a guide that says "carburetor" and a BMC
+# manual that says "carburetter". Each group folds into its first word.
+synonyms:
+  - [carb, carburetor, carburettor, carburetter]
+  - [tyre, tire]
+  - [bonnet, hood]
+  - [petrol, gasoline]
+
 systems:
   engine:
     terms: [engine, block, compression, firing order, crankshaft, piston, timing chain]

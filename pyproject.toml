@@ -4,7 +4,10 @@ version = "0.1.0"
 description = "Local voice-and-text assistant for a 1973 MGB Roadster."
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = ["pyyaml>=6.0"]
+dependencies = [
+    "pypdf>=6.20.1",
+    "pyyaml>=6.0",
+]
 
 [dependency-groups]
 dev = ["pytest>=8"]

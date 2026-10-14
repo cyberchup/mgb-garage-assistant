@@ -36,16 +36,17 @@ These are the product's requirements. Every feature and every test must hold to 
 
 ## Repo layout
 
-- `profile/`: car profile YAML, and `systems.yaml`: the system ids and the words that point at them. Deviations, unknowns, source passages and questions all use these ids.
+- `profile/`: car profile YAML, and `systems.yaml`: the system ids, the words that point at them, and synonyms folded before matching and search. Deviations, unknowns, source passages and questions all use these ids.
+- `sources/`: one metadata file per document (tier, PDF path, page ranges to systems, page-number labels, boilerplate patterns). Committed, so page references only: never document text.
 - `schemas/`: example maintenance log entry.
 - `evals/v1.yaml`: eval questions and their machine checks. The harness reads this file.
-- `src/mgb_assistant/`: the Python package. `answer.py` holds the answer contract (citations with tier, printed page and system; `[n]` markers in the text). `resolver.py` is the profile resolver. `sources.py` holds the passage index format and `retriever.py` the tiered retriever (BM25 for now). `evals/` holds the harness and the baseline assistants.
+- `src/mgb_assistant/`: the Python package. `answer.py` holds the answer contract (citations with tier, printed page and system; `[n]` markers in the text). `resolver.py` is the profile resolver. `sources.py` holds the passage index format, `ingest.py` builds the index from PDFs (pypdf), and `retriever.py` is the tiered retriever (BM25 for now). `evals/` holds the harness and the baseline assistants.
 - `tests/`: pytest suite.
 - `runs/`: eval run records. Gitignored, since model answers can paraphrase the manual.
 - `index/`: the source index (`passages.jsonl`, page-cited passages tagged by tier and system). Gitignored, since it holds manual text.
 - `manuals/`: private source PDFs. Gitignored; **never commit manual content**.
 
-Commands (Python 3.12 via uv): `uv sync`, `uv run pytest`, `uv run python -m mgb_assistant.evals` (profile on and off; `--case ID` for one case; `--assistant profile-only`), `uv run python -m mgb_assistant.resolver "QUESTION"` and `uv run python -m mgb_assistant.retriever "QUESTION"` (both take `--no-profile` for the ablation view).
+Commands (Python 3.12 via uv): `uv sync`, `uv run pytest`, `uv run python -m mgb_assistant.evals` (profile on and off; `--case ID` for one case; `--assistant profile-only`), `uv run python -m mgb_assistant.ingest` (rebuilds `index/` from `sources/`), `uv run python -m mgb_assistant.resolver "QUESTION"` and `uv run python -m mgb_assistant.retriever "QUESTION"` (both take `--no-profile` for the ablation view).
 
 ## Build phases
 
@@ -71,6 +72,8 @@ Each phase ends on an eval gate, not on a feature list.
 ## Decisions
 
 - **Manual:** the factory workshop manual reprint (MGB and MGB GT, 1962–1980, ISBN 9781855201743). It's a paper copy, to be scanned into a searchable PDF in `manuals/`. Citations use the page numbers printed in the book, not the PDF's own page numbers.
+- **PDF library:** pypdf (pure Python, BSD). Not PyMuPDF, whose AGPL license would cover the project.
+- **First tier 2 source:** the free Weber N.A. conversion kit installation guide (`sources/weber-install-guide.yaml`). It doesn't cover float level or jetting.
 
 ## Open questions (ask; don't assume)
 

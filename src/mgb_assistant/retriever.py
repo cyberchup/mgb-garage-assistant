@@ -22,7 +22,7 @@ from mgb_assistant.answer import Citation
 from mgb_assistant.paths import DEFAULT_INDEX, DEFAULT_PROFILE, find_root
 from mgb_assistant.resolver import Resolution, Resolver, load_resolver
 from mgb_assistant.sources import Passage, load_index
-from mgb_assistant.taxonomy import overlaps, words
+from mgb_assistant.taxonomy import Taxonomy, overlaps, words
 
 STOPWORDS = frozenset(
     words(
@@ -33,8 +33,9 @@ STOPWORDS = frozenset(
 SYSTEM_BOOST = 1.5  # passages on a system the question touches
 
 
-def terms(text: str) -> list[str]:
-    return [w for w in words(text) if w not in STOPWORDS]
+def terms(text: str, taxonomy: Taxonomy) -> list[str]:
+    """Search terms: the taxonomy's folded words, minus stopwords."""
+    return [w for w in taxonomy.normalize(text) if w not in STOPWORDS]
 
 
 class Bm25:
@@ -94,7 +95,7 @@ class Retriever:
             raise ValueError(f"the index uses systems the taxonomy lacks: {', '.join(unknown)}")
         self.passages = tuple(passages)
         self.resolver = resolver
-        self._bm25 = Bm25([terms(p.text) for p in self.passages])
+        self._bm25 = Bm25([terms(p.text, resolver.taxonomy) for p in self.passages])
 
     def without_profile(self) -> Retriever:
         """The same retriever with the profile switched off, for the ablation."""
@@ -106,7 +107,7 @@ class Retriever:
         resolution = self.resolver.resolve(question)
         hits: list[Hit] = []
         set_aside: list[SetAside] = []
-        for passage, score in zip(self.passages, self._bm25.scores(terms(question))):
+        for passage, score in zip(self.passages, self._bm25.scores(terms(question, self.resolver.taxonomy))):
             if score <= 0:
                 continue
             if any(overlaps(passage.system, s) for s in resolution.systems):
@@ -180,6 +181,8 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     if args.no_profile:
         retriever = retriever.without_profile()
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(errors="replace")  # a Windows console can't show every character in a PDF
     print(format_retrieval(retriever.search(args.question, k=args.k)))
     return 0
 

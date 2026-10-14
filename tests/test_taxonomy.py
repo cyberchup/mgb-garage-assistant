@@ -60,6 +60,19 @@ def test_overlaps_runs_both_ways():
     assert not overlaps("fuel.carburetor", "fuel.choke")
 
 
+def test_synonyms_fold_into_the_first_word_of_their_group():
+    taxonomy = Taxonomy([System("fuel.carburetor", ("carb",))], synonyms=[["carb", "carburetor", "carburetter"]])
+    assert taxonomy.normalize("Carburetters and carburetors") == ("carb", "and", "carb")
+    assert [m.systems for m in taxonomy.match("Remove the carburetter")] == [("fuel.carburetor",)]
+
+
+def test_rejects_a_synonym_group_with_phrases(tmp_path):
+    path = tmp_path / "systems.yaml"
+    path.write_text("systems:\n  fuel:\n    terms: [fuel]\nsynonyms:\n  - [petrol, motor spirit]\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="single words"):
+        load_taxonomy(path)
+
+
 def test_the_repo_taxonomy_loads():
     taxonomy = load_taxonomy(REPO / "profile" / "systems.yaml")
     assert taxonomy.is_safety_critical("fuel.lines")

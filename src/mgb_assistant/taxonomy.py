@@ -46,17 +46,28 @@ class Match:
 
 
 class Taxonomy:
-    def __init__(self, systems: Iterable[System]):
+    def __init__(self, systems: Iterable[System], synonyms: Iterable[Iterable[str]] = ()):
+        # Each group folds into its first word: carburetor and carburetter both become carb.
+        self.synonyms: dict[str, str] = {}
+        for group in synonyms:
+            folded = [w for word in group for w in words(word)]
+            self.synonyms.update({w: folded[0] for w in folded})
         self.systems = {s.id: s for s in systems}
         self._terms: dict[tuple[str, ...], list[str]] = {}
         for system in self.systems.values():
             for term in system.terms:
-                self._terms.setdefault(words(term), []).append(system.id)
+                ids = self._terms.setdefault(self.normalize(term), [])
+                if system.id not in ids:
+                    ids.append(system.id)
         self._longest = max((len(t) for t in self._terms), default=0)
+
+    def normalize(self, text: str) -> tuple[str, ...]:
+        """The text's words with plurals and synonyms folded, as matching and search see them."""
+        return tuple(self.synonyms.get(w, w) for w in words(text))
 
     def match(self, question: str) -> list[Match]:
         """Terms in the question, longest first at each position, left to right."""
-        asked, normalized = _raw_words(question), words(question)
+        asked, normalized = _raw_words(question), self.normalize(question)
         matches: list[Match] = []
         i = 0
         while i < len(normalized):
@@ -88,4 +99,8 @@ def load_taxonomy(path: Path) -> Taxonomy:
         if not terms:
             raise ValueError(f"{path}: system {system_id} has no terms")
         systems.append(System(system_id, terms, bool(entry.get("safety_critical", False))))
-    return Taxonomy(systems)
+    synonyms = data.get("synonyms") or []
+    for group in synonyms:
+        if not isinstance(group, list) or len(group) < 2 or any(len(words(w)) != 1 for w in group):
+            raise ValueError(f"{path}: each synonym group is a list of two or more single words; got {group!r}")
+    return Taxonomy(systems, synonyms)

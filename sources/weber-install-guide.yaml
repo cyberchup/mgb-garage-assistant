@@ -1,0 +1,17 @@
+# Weber N.A. carburetor conversion kit installation guide (kits WK050/WK055 fit the MGB).
+# Source metadata only: page references and systems. Never put the document's text here.
+# The PDF lives in manuals/ (gitignored); download it from the url below.
+
+id: weber-install-guide
+source: Weber install guide          # the name citations show
+tier: 2
+file: manuals/weber_conversion_kit.pdf
+url: https://www.mgaguru.com/mgtech/carbs/pdf/weber_conversion_kit.pdf
+
+# Printed page numbers match the PDF's own, so no labels section is needed.
+# PDF pages 7-8 picture the 34 DGEC kit; pages 6, 9 and 10 the 32/36 DGV/DGEV.
+
+systems:
+  - pages: 1-11
+    default: fuel.carburetor
+    allow: [fuel.choke, fuel.air_filter, fuel.lines, fuel.pump, tuning.idle, tuning.mixture, engine.manifolds]

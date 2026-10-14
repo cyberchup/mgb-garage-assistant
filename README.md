@@ -39,7 +39,15 @@ The retriever command searches the source index (`index/passages.jsonl`, gitigno
 
 ## Bring your own manual
 
-Workshop manuals are copyrighted and aren't included. Put your own PDFs in `manuals/` (gitignored).
+Workshop manuals are copyrighted and aren't included. Put your own PDFs in `manuals/` (gitignored). Scanned paper needs OCR first: the ingester reads the PDF's text layer and reports any page without one.
+
+Each document has a source file in `sources/` (committed). It holds only metadata: the tier, the PDF's path, which systems each page range covers, how PDF pages map to printed page numbers, and patterns for boilerplate lines. `sources/weber-install-guide.yaml` is a worked example for the free Weber conversion kit guide. Then rebuild the index:
+
+```
+uv run python -m mgb_assistant.ingest
+```
+
+Every PDF page must fall inside a `systems` range. That keeps tagging deliberate, which matters most for the workshop manual: an SU page tagged with the wrong system would escape the Weber override.
 
 ## Roadmap
 
